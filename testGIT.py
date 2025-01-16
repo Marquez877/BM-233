@@ -7,7 +7,7 @@ from telebot import types, callback_data
 import time
 import requests
 import threading
-bot = telebot.TeleBot('7817287849:AAFxsBwLHgpn22V6I7KK_abplD93T_sKrho')
+bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
 db_path = 'casino.db'
 
 back = '🔙 Back'
