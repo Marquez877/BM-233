@@ -69,7 +69,7 @@ def show_users(message):
         cursor.close()
         connection.close()
 
-# rohgerouhg my first change in this bot Kairat
+# rohgerouhg my first change in this bot Kairat `1234567890
 
 # Add user to the database
 def add_user(chat_id, first_name):
