@@ -107,13 +107,14 @@ def send_menu(chat_id):
     text = f"Choose an option 📲. We have everything to make you happy!"
     casino_players[chat_id] = chat_id
     markup = types.InlineKeyboardMarkup()
-
+    my_profile = types.InlineKeyboardButton('MY PROFILE',callback_data='my_profile')
     info = types.InlineKeyboardButton('INFO 📋', callback_data='info')
     manas = types.InlineKeyboardButton('MANAS 🎓', callback_data='manas')
     games = types.InlineKeyboardButton('GAMES 👾', callback_data='games')
     random_things = types.InlineKeyboardButton('RANDOM THINGS 🎲', callback_data='random_play')
     gtp_button = types.InlineKeyboardButton('Free Chat GPT ⚪', callback_data='gpt')
     forbes = types.InlineKeyboardButton('FORBES 💸', callback_data='forbes')
+    markup.row(my_profile)
     markup.row(info, manas)
     markup.row(games, random_things)
     markup.row(gtp_button)
@@ -166,6 +167,7 @@ def random_things(chat_id):
 
 
 
+#MY PROFILE
 
 
 
@@ -221,7 +223,7 @@ def casino_menu(chat_id):
 
     # Отправляем сообщение с фото и клавиатурой
     try:
-        with open('welcome_casino.jpg', 'rb') as photo:
+        with open('media/welcome_casino.jpg', 'rb') as photo:
             bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
     except FileNotFoundError:
         bot.send_message(chat_id, "❌ Image file 'welcome_casino.jpg' not found.")
@@ -275,7 +277,7 @@ def roulette_menu(chat_id):
     # Кнопка Back
     back_button = types.InlineKeyboardButton(back, callback_data='casino')
     markup.row(back_button)
-    with open('casinoPHOTO.jpg', 'rb') as photo:
+    with open('media/casinoPHOTO.jpg', 'rb') as photo:
         bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
 
 
@@ -304,7 +306,7 @@ def bet_menu(chat_id, category):
     back_button = types.InlineKeyboardButton(back, callback_data='roulette')
     markup.add(back_button)
 
-    with open('bet-casino.mp4', 'rb') as gif:
+    with open('media/bet-casino.mp4', 'rb') as gif:
         bot.send_animation(chat_id, gif, caption=text, reply_markup=markup)
 
 
@@ -399,7 +401,7 @@ def play_roulette(chat_id, bet_amount, category):
         multiplier = 0
 
         try:
-            with open('roulette-game.mp4', 'rb') as gif:
+            with open('media/roulette-game.mp4', 'rb') as gif:
                 animation_msg = bot.send_animation(
                     chat_id, gif,
                     caption='🎡 *The roulette spins...*\nWill luck be on your side? 🤔🍀',
@@ -496,7 +498,7 @@ def start(message):
         bot.send_photo(chat_id, avatar_file_id, caption=text,parse_mode="Markdown")
     else:
         # Если аватарки нет — отправляем запасное фото
-        with open("cat.jpg",
+        with open("media/cat.jpg",
                   "rb") as photo:
             bot.send_photo(chat_id, photo, caption=text,parse_mode="Markdown")
 
@@ -560,18 +562,14 @@ def start_new_game(call):
     markup.add(skip_button)
     bot.send_message(user_id, f'Guess the word: **{shuffled_word}**', parse_mode='Markdown', reply_markup=markup)
 
-@bot.message_handler(func=lambda message: message.chat.id in user_states)  # проверка правильности
+@bot.message_handler(func=lambda message: message.chat.id in user_states) # проверка правильности
 def check_guess(message):
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     user_id = message.chat.id
     user_data = user_states.get(user_id)
 
     if message.text.lower() == user_data["original_word"]:
-        # Увеличиваем баланс на +100
-        current_balance = get_balance(user_id)
-        new_balance = current_balance + 100
-        update_balance(user_id, new_balance)
-        bot.send_message(user_id, "Correct! 🎉 Great job! You got +100!")
+        bot.send_message(user_id, "Correct! 🎉 Great job!")
 
         # Убираем состояние игрока
         user_states.pop(user_id)
@@ -579,7 +577,7 @@ def check_guess(message):
         # Предлагаем начать новую игру
         markup = types.InlineKeyboardMarkup()
         play_again = types.InlineKeyboardButton('Play Again', callback_data='guess_word')
-        back_button = types.InlineKeyboardButton('Back', callback_data='back')
+        back_button = types.InlineKeyboardButton(back, callback_data='back')
         markup.row(play_again)
         markup.row(back_button)
         bot.send_message(user_id, "Want to play again?", reply_markup=markup)
@@ -649,7 +647,10 @@ def handle_math_answer(message):
     # Проверка правильности ответа
     if user_answer == correct_answer:
         user_data[chat_id]['score'] += 1
-        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉")
+        current_balance = get_balance(chat_id)
+        new_balance = current_balance + 100
+        update_balance(chat_id, new_balance)
+        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉 +100 💰")
     else:
         bot.send_message(chat_id, f"Wrong answer 😞. The answer correct is: {correct_answer}")
 
@@ -820,7 +821,7 @@ def play_roulette_number(chat_id, bet_amount, number):
         if current_balance is None or bet_amount <= 0 or bet_amount > current_balance:
             return "Invalid bet: make sure your bet is positive and within your balance.", current_balance
         # Уведомление пользователя о спине рулетки
-        with open('roulette-game.mp4', 'rb') as gif:
+        with open('media/roulette-game.mp4', 'rb') as gif:
             animation_msg = bot.send_animation(chat_id, gif, caption='The ball is spinning...')
         time.sleep(4)
         # Удаляем только гифку через 0.1 секунду
@@ -912,7 +913,7 @@ def send_math_question(chat_id):
     # Генерация вопроса
     num1 = random.randint(1, 1000)
     num2 = random.randint(1, 1000)
-    operator = random.choice(['+', '-', '*'])
+    operator = random.choice(['+', '-'])
 
     question = f"{num1} {operator} {num2}"
     correct_answer = eval(question)  # Вычисляем правильный ответ

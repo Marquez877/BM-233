@@ -93,7 +93,7 @@ def casino_menu(chat_id):
 
     # Отправляем сообщение с фото и клавиатурой
     try:
-        with open('welcome_casino.jpg', 'rb') as photo:
+        with open('media/welcome_casino.jpg', 'rb') as photo:
             bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
     except FileNotFoundError:
         bot.send_message(chat_id, "❌ Image file 'welcome_casino.jpg' not found.")
@@ -147,7 +147,7 @@ def roulette_menu(chat_id):
     # Кнопка Back
     back_button = types.InlineKeyboardButton(back, callback_data='casino_menu')
     markup.add(back_button)
-    with open('casinoPHOTO.jpg', 'rb') as photo:
+    with open('media/casinoPHOTO.jpg', 'rb') as photo:
         bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
 
 
@@ -176,7 +176,7 @@ def bet_menu(chat_id, category):
     back_button = types.InlineKeyboardButton(back, callback_data='roulette_menu')
     markup.add(back_button)
 
-    with open('bet-casino.mp4', 'rb') as gif:
+    with open('media/bet-casino.mp4', 'rb') as gif:
         bot.send_animation(chat_id, gif, caption=text, reply_markup=markup)
 
 
@@ -240,7 +240,7 @@ def play_roulette(chat_id, bet_amount, category):
     multiplier = 0
 
     # Notify user about spinning the roulette
-    with open('roulette-game.mp4', 'rb') as gif:
+    with open('media/roulette-game.mp4', 'rb') as gif:
         bot.send_animation(chat_id,gif,caption='The ball is spinning...')
         time.sleep(4)  # Задержка на 2 секунды
 
@@ -380,7 +380,7 @@ def play_roulette_number(chat_id, bet_amount, number):
     current_balance = get_balance(chat_id)
 
     # Уведомляем, что рулетка крутится
-    with open('roulette-game.mp4', 'rb') as gif:
+    with open('media/roulette-game.mp4', 'rb') as gif:
         bot.send_animation(chat_id, gif, caption='The ball is spinning...')
         time.sleep(4)
 
