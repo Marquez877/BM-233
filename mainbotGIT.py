@@ -102,6 +102,8 @@ def get_all_chat_ids():
     finally:
         cursor.close()
         connection.close()
+
+
 # Main Menu
 def send_menu(chat_id):
     text = f"Choose an option 📲. We have everything to make you happy!"
@@ -380,12 +382,12 @@ def play_roulette(chat_id, bet_amount, category):
     multiplier = 0
 
     # Notify user about spinning the roulette
-    # Notify user about spinning the roulette
     with open('roulette-game.mp4', 'rb') as gif:
         animation_msg = bot.send_animation(chat_id, gif, caption='The ball is spinning...')
     time.sleep(4)
     # Удаляем только гифку через 4 секунды
     threading.Timer(0.1, lambda: bot.delete_message(chat_id, animation_msg.message_id)).start()
+
     # Check winning conditions
     if category == '1st' and 1 <= roulette_result <= 12:
         won, multiplier = True, 1.89

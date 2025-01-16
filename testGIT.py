@@ -7,7 +7,7 @@ from telebot import types, callback_data
 import time
 import requests
 import threading
-bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
+bot = telebot.TeleBot('7817287849:AAFxsBwLHgpn22V6I7KK_abplD93T_sKrho')
 db_path = 'casino.db'
 
 back = '🔙 Back'
@@ -560,14 +560,18 @@ def start_new_game(call):
     markup.add(skip_button)
     bot.send_message(user_id, f'Guess the word: **{shuffled_word}**', parse_mode='Markdown', reply_markup=markup)
 
-@bot.message_handler(func=lambda message: message.chat.id in user_states) # проверка правильности
+@bot.message_handler(func=lambda message: message.chat.id in user_states)  # проверка правильности
 def check_guess(message):
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     user_id = message.chat.id
     user_data = user_states.get(user_id)
 
     if message.text.lower() == user_data["original_word"]:
-        bot.send_message(user_id, "Correct! 🎉 Great job!")
+        # Увеличиваем баланс на +100
+        current_balance = get_balance(user_id)
+        new_balance = current_balance + 100
+        update_balance(user_id, new_balance)
+        bot.send_message(user_id, "Correct! 🎉 Great job! You got +100!")
 
         # Убираем состояние игрока
         user_states.pop(user_id)
@@ -575,7 +579,7 @@ def check_guess(message):
         # Предлагаем начать новую игру
         markup = types.InlineKeyboardMarkup()
         play_again = types.InlineKeyboardButton('Play Again', callback_data='guess_word')
-        back_button = types.InlineKeyboardButton(back, callback_data='back')
+        back_button = types.InlineKeyboardButton('Back', callback_data='back')
         markup.row(play_again)
         markup.row(back_button)
         bot.send_message(user_id, "Want to play again?", reply_markup=markup)
@@ -615,6 +619,7 @@ def skip_word(call):
 
 #Mathematicians game
 user_data = {}
+
 @bot.callback_query_handler(func=lambda call: call.data == 'math_game')
 def start_math_game(call):
     chat_id = call.message.chat.id
@@ -662,6 +667,7 @@ def continue_math_game1(call):
 def back_games1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     games(call.message.chat.id)
+
 #Random Things Part
 @bot.callback_query_handler(func=lambda call: call.data == 'random_play')
 def random_play1(call):
@@ -757,7 +763,6 @@ def handle_callbacks(call):
     elif call.data == 'forbes':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         show_forbes(call.message.chat.id)
-
 def handle_number_bet(message):
     try:
         number = int(message.text)  # Пробуем преобразовать ввод в число
@@ -881,6 +886,8 @@ def show_forbes(chat_id):
         cursor.close()
         connection.close()
 # Вспомогательные функции
+
+
 
 # 1 - GAMES PART FUNCTIONS
 WORDS = [

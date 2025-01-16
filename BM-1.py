@@ -7,7 +7,7 @@ from telebot import types, callback_data
 import time
 import requests
 import threading
-bot = telebot.TeleBot('7817287849:AAFxsBwLHgpn22V6I7KK_abplD93T_sKrho')
+bot = telebot.TeleBot('')
 db_path = 'casino.db'
 
 back = '🔙 Back'
@@ -615,6 +615,7 @@ def skip_word(call):
 
 #Mathematicians game
 user_data = {}
+
 @bot.callback_query_handler(func=lambda call: call.data == 'math_game')
 def start_math_game(call):
     chat_id = call.message.chat.id
@@ -644,7 +645,10 @@ def handle_math_answer(message):
     # Проверка правильности ответа
     if user_answer == correct_answer:
         user_data[chat_id]['score'] += 1
-        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉")
+        current_balance = get_balance(chat_id)
+        new_balance = current_balance + 100
+        update_balance(chat_id, new_balance)
+        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉 +100 💰")
     else:
         bot.send_message(chat_id, f"Wrong answer 😞. The answer correct is: {correct_answer}")
 
@@ -662,6 +666,7 @@ def continue_math_game1(call):
 def back_games1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     games(call.message.chat.id)
+
 #Random Things Part
 @bot.callback_query_handler(func=lambda call: call.data == 'random_play')
 def random_play1(call):
@@ -757,7 +762,6 @@ def handle_callbacks(call):
     elif call.data == 'forbes':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         show_forbes(call.message.chat.id)
-
 def handle_number_bet(message):
     try:
         number = int(message.text)  # Пробуем преобразовать ввод в число
@@ -882,6 +886,8 @@ def show_forbes(chat_id):
         connection.close()
 # Вспомогательные функции
 
+
+
 # 1 - GAMES PART FUNCTIONS
 WORDS = [
     "ability", "action", "adventure", "age", "air", "animal", "answer", "area", "army", "art",
@@ -905,7 +911,7 @@ def send_math_question(chat_id):
     # Генерация вопроса
     num1 = random.randint(1, 1000)
     num2 = random.randint(1, 1000)
-    operator = random.choice(['+', '-', '*'])
+    operator = random.choice(['+', '-'])
 
     question = f"{num1} {operator} {num2}"
     correct_answer = eval(question)  # Вычисляем правильный ответ
