@@ -634,7 +634,7 @@ def handle_math_answer(message):
     text = message.text
 
     # Проверяем, является ли ответ числом
-    if not text.isdigit():
+    if not text.lstrip('-').isdigit():
         bot.send_message(chat_id, "Enter the number as a reply to the question.")
         return
 
@@ -967,6 +967,16 @@ def get_random_motivation():
 def start_periodic_sender():
     sender_thread = threading.Thread(target=send_periodic_messages, daemon=True)
     sender_thread.start()
+def notify_students(chat_id):
+    text = ("Добрый день, студент группы BM-23! Не забудьте зарегистрироваться на предметы через OBIS TEST.\n\n"
+            "⏳ Регистрация доступна до **20 января, 17:30**.\n\n"
+            "Кутман күн, BM-23 студент! OBIS TEST системасында сабактарга каттоо керектигин унутпаңыз.\n\n"
+            "⏳ Каттоо **20-январь саат 17:30га чейин** жеткиликтүү.\n\n"
+            "by marquez")
+    markup = types.InlineKeyboardMarkup()
+    button = types.InlineKeyboardButton('🔗 Перейти на OBIS TEST', url='https://obistest.manas.edu.kg/site/login')
+    markup.add(button)
+    bot.send_message(chat_id, text, reply_markup=markup, parse_mode='Markdown')
 def send_periodic_messages():
     """
     Отправляет уведомление через bot.send_message всем зарегистрированным пользователям.
@@ -979,12 +989,7 @@ def send_periodic_messages():
 
         for chat_id in chat_ids:
             try:
-                bot.send_message(
-                    chat_id[0],
-                    "The issues have been resolved. The bot is now fully operational ✅\n\n"
-                    "by marquez",
-                    parse_mode="Markdown"
-                )
+                notify_students(chat_id[0])
             except Exception as e:
                 print(f"Error sending update to chat_id {chat_id[0]}: {e}")
 
@@ -995,7 +1000,7 @@ def send_periodic_messages():
         connection.close()
 
 
-# отправка бесконечных сообщений с периодом времени
+# # отправка бесконечных сообщений с периодом времени
 # if __name__ == '__main__':
 #     init_db()  # Убедимся, что база и таблица созданы
 #     start_periodic_sender()
