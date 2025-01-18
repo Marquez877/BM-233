@@ -107,13 +107,14 @@ def send_menu(chat_id):
     text = f"Choose an option 📲. We have everything to make you happy!"
     casino_players[chat_id] = chat_id
     markup = types.InlineKeyboardMarkup()
-
+    my_profile = types.InlineKeyboardButton('MY PROFILE',callback_data='my_profile')
     info = types.InlineKeyboardButton('INFO 📋', callback_data='info')
     manas = types.InlineKeyboardButton('MANAS 🎓', callback_data='manas')
     games = types.InlineKeyboardButton('GAMES 👾', callback_data='games')
     random_things = types.InlineKeyboardButton('RANDOM THINGS 🎲', callback_data='random_play')
     gtp_button = types.InlineKeyboardButton('Free Chat GPT ⚪', callback_data='gpt')
     forbes = types.InlineKeyboardButton('FORBES 💸', callback_data='forbes')
+    markup.row(my_profile)
     markup.row(info, manas)
     markup.row(games, random_things)
     markup.row(gtp_button)
@@ -166,6 +167,7 @@ def random_things(chat_id):
 
 
 
+#MY PROFILE
 
 
 
@@ -635,7 +637,8 @@ def handle_math_answer(message):
     text = message.text
 
     # Проверяем, является ли ответ числом
-    if not text.isdigit():
+    if not text.lstrip('-').isdigit():
+        bot.send_message(chat_id, "Please enter a valid number.")
         bot.send_message(chat_id, "Enter the number as a reply to the question.")
         return
 

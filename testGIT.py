@@ -637,7 +637,8 @@ def handle_math_answer(message):
     text = message.text
 
     # Проверяем, является ли ответ числом
-    if not text.isdigit():
+    if not text.lstrip('-').isdigit():
+        bot.send_message(chat_id, "Please enter a valid number.")
         bot.send_message(chat_id, "Enter the number as a reply to the question.")
         return
 
