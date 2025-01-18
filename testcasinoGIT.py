@@ -4,7 +4,7 @@ import sqlite3
 from telebot import types
 import time
 
-bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
+bot = telebot.TeleBot('')
 db_path = 'casino.db'
 
 back = '🔙 Back'

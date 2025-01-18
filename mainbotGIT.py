@@ -7,7 +7,7 @@ from telebot import types, callback_data
 import time
 import requests
 import threading
-bot = telebot.TeleBot('8045644532:AAHE6PH8pHMkY3SZaIHBAzlTkRItWm94tLA')
+bot = telebot.TeleBot('удалил токен')
 db_path = 'casino.db'
 
 back = '🔙 Back'
