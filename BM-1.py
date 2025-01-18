@@ -525,12 +525,12 @@ def about_owner(call):
     bot.send_message(call.message.chat.id, text)
     info(call.message.chat.id)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'bot owner')
-def about_owner(call):
-    bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-    text = "This bot is designed to help and entertain people"
-    bot.send_message(call.message.chat.id, text)
-    info(call.message.chat.id)
+# @bot.callback_query_handler(func=lambda call: call.data == 'bot owner')
+# def about_owner(call):
+#     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+#     text = "This bot is designed to help and entertain people"
+#     bot.send_message(call.message.chat.id, text)
+#     info(call.message.chat.id)
 
 
 # Manas Part
