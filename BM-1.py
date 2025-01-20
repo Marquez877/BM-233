@@ -7,7 +7,11 @@ from telebot import types, callback_data
 import time
 import requests
 import threading
-bot = telebot.TeleBot('7817287849:AAFxsBwLHgpn22V6I7KK_abplD93T_sKrho')
+from database_utils import init_db, add_user, get_balance, update_balance, get_all_chat_ids
+from menu_handlers import send_menu
+from throw_cubes import throw_cubes_game
+
+bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
 db_path = 'casino.db'
 
 back = '🔙 Back'
@@ -142,7 +146,9 @@ def manas(chat_id):
     markup.row(back1)
     bot.send_message(chat_id, text, reply_markup=markup)
 def games(chat_id):
-    text = 'These games are available now:'
+    current_balance = get_balance(chat_id)
+    text = (f'*Your balance: {current_balance} 💰*\n\n'
+            f'These games are available now: 🎯')
     markup = types.InlineKeyboardMarkup()
     guess_word = types.InlineKeyboardButton('Guess Word 🔮', callback_data='guess_word')
     math_game = types.InlineKeyboardButton('Math Game 🧠', callback_data='math_game')
@@ -150,7 +156,7 @@ def games(chat_id):
     markup.row(guess_word)
     markup.row(math_game)
     markup.row(back1)
-    bot.send_message(chat_id, text, reply_markup=markup)
+    bot.send_message(chat_id, text, reply_markup=markup,parse_mode="Markdown")
 def random_things(chat_id):
     text = "Choose what random thing you'd like to see 🎲:"
     markup = types.InlineKeyboardMarkup()
@@ -207,7 +213,9 @@ def casino_menu(chat_id):
         current_balance = 0  # Если баланс не найден, установить значение по умолчанию
 
     # Обновляем текст с отображением баланса
-    text = f'We always make you happy with games! 😊\nYour current balance: {current_balance}💰\nChoose a game you want to play:'
+    text = (f'We always make you happy with games! 😊\n\n'
+            f'*Your current balance: {current_balance} 💰\n\n*'
+            f'Choose a game you want to play:')
 
     # Создаем клавиатуру (меню)
     markup = types.InlineKeyboardMarkup()
@@ -224,7 +232,7 @@ def casino_menu(chat_id):
     # Отправляем сообщение с фото и клавиатурой
     try:
         with open('media/welcome_casino.jpg', 'rb') as photo:
-            bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
+            bot.send_photo(chat_id, photo, caption=text, reply_markup=markup,parse_mode="Markdown")
     except FileNotFoundError:
         bot.send_message(chat_id, "❌ Image file 'welcome_casino.jpg' not found.")
     except Exception as e:
@@ -525,12 +533,7 @@ def about_owner(call):
     bot.send_message(call.message.chat.id, text)
     info(call.message.chat.id)
 
-# @bot.callback_query_handler(func=lambda call: call.data == 'bot owner')
-# def about_owner(call):
-#     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-#     text = "This bot is designed to help and entertain people"
-#     bot.send_message(call.message.chat.id, text)
-#     info(call.message.chat.id)
+
 
 
 # Manas Part
@@ -569,7 +572,9 @@ def check_guess(message):
     user_data = user_states.get(user_id)
 
     if message.text.lower() == user_data["original_word"]:
-        bot.send_message(user_id, "Correct! 🎉 Great job!")
+        current_balance = get_balance(user_id)
+        update_balance(user_id, current_balance + 100)
+        bot.send_message(user_id, "Correct! 🎉 Great job! You got +100 💰")
 
         # Убираем состояние игрока
         user_states.pop(user_id)
@@ -765,6 +770,7 @@ def handle_callbacks(call):
     elif call.data == 'forbes':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         show_forbes(call.message.chat.id)
+
 def handle_number_bet(message):
     try:
         number = int(message.text)  # Пробуем преобразовать ввод в число
