@@ -322,28 +322,24 @@ def process_answer(call):
 def random_play1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     random_things(call.message.chat.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == 'random_fact')
 def random_fact1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     fact = get_random_fact()
     bot.send_message(call.message.chat.id, f"🧠 Random Fact: {fact}")
     random_things(call.message.chat.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == 'random_motivation')
 def random_motivation1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     motivation = get_random_motivation()
     bot.send_message(call.message.chat.id, f"💪 Random Motivation: {motivation}")
     random_things(call.message.chat.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == 'random_photo')
 def random_photo1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     photo = get_random_photo()
     bot.send_photo(call.message.chat.id, photo)
     random_things(call.message.chat.id)
-
 @bot.callback_query_handler(func=lambda call: call.data == 'random_joke')
 def random_joke1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
@@ -456,7 +452,6 @@ user_states = {}
 def start_periodic_sender():
     sender_thread = threading.Thread(target=send_periodic_messages, daemon=True)
     sender_thread.start()
-
 def send_periodic_messages():
     """
     Отправляет уведомление через bot.send_message всем зарегистрированным пользователям.
