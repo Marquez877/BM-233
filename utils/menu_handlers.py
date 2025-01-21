@@ -52,17 +52,3 @@ def manas_menu(bot, chat_id):
     markup.row(back1)
     bot.send_message(chat_id, text, reply_markup=markup)
 
-
-def send_games_menu(bot, chat_id):
-    """Главное меню игр"""
-    current_balance = get_balance(chat_id)
-    text = (f'*Your balance: {current_balance} 💰*\n\n'
-            f'These games are available now: 🎯')
-    markup = types.InlineKeyboardMarkup()
-    guess_word = types.InlineKeyboardButton('Guess Word 🔮', callback_data='guess_word')
-    math_game = types.InlineKeyboardButton('Math Game 🧠', callback_data='math_game')
-    back1 = types.InlineKeyboardButton(back, callback_data='back')
-    markup.row(guess_word)
-    markup.row(math_game)
-    markup.row(back1)
-    bot.send_message(chat_id, text, reply_markup=markup, parse_mode="Markdown")

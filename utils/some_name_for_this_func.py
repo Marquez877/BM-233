@@ -30,21 +30,41 @@ def manas(chat_id):
     markup.row(back1)
     bot.send_message(chat_id, text, reply_markup=markup)
 
+import re
+
+
+def escape_markdown(text, version=2):
+    """Экранирует специальные символы для Markdown."""
+    escape_chars = r'\*_`[]()~>#+-=|{}.!'
+    if version == 2:
+        escape_chars += '-'
+    return re.sub(f'([{re.escape(escape_chars)}])', r'\\\1', text)
 
 def games(chat_id):
     """Функция для вывода игровых возможностей, включая баланс"""
     current_balance = get_balance(chat_id)  # Получение текущего баланса пользователя
-    text = (f'*Your balance: {current_balance} 💰*\n\n'
-            f'These games are available now: 🎯')
+    intellect_points = get_intelligence_points_by_chat_id(chat_id)
+
+    # Экранируем текст для корректной работы Markdown
+    text = (
+        f'*Your balance: {current_balance} 💰*\n\n'
+        f'*Your intellect: {intellect_points} 🧠*\n\n'
+        f'These games are available now: 🎯'
+    )
+
     markup = types.InlineKeyboardMarkup()
     guess_word = types.InlineKeyboardButton('Guess Word 🔮', callback_data='guess_word')
     math_game = types.InlineKeyboardButton('Math Game 🧠', callback_data='math_game')
     back1 = types.InlineKeyboardButton(back, callback_data='back')
+    trivia_challenge = types.InlineKeyboardButton('Trivia Challenge 🎖️', callback_data='trivia_challenge')
+
     markup.row(guess_word)
     markup.row(math_game)
+    markup.row(trivia_challenge)
     markup.row(back1)
-    bot.send_message(chat_id, text, reply_markup=markup, parse_mode="Markdown")
 
+    # Передаем текст с Markdown-разметкой
+    bot.send_message(chat_id, text, reply_markup=markup, parse_mode="Markdown")
 
 def random_things(chat_id):
     """Функция для вывода меню случайных вещей"""

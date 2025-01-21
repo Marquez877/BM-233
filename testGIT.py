@@ -9,7 +9,7 @@ db_path = 'casino.db'
 user_states = {}
 back = '🔙 Back'
 casino_players = {}
-
+init_trivia_db()
 @bot.message_handler(commands=['sqlite3_private_info'])
 def show_users(message):
     try:
@@ -89,6 +89,8 @@ def gpt1(call):
 @bot.callback_query_handler(func=lambda call: call.data == 'my_profile')
 def profile_callback(call):
     from utils.profile import my_profile
+    chat_id = call.message.chat.id
+    bot.delete_message(chat_id=chat_id, message_id=call.message.message_id)
     my_profile(call.message.chat.id)
 
 
@@ -267,7 +269,8 @@ def handle_math_answer(message):
         current_balance = get_balance(chat_id)
         new_balance = current_balance + 50
         update_balance(chat_id, new_balance)
-        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉 +50 💰")
+        update_intelligence_points(chat_id, 1)
+        bot.send_message(chat_id, "CONGRATULATIONS! You got it right! 🎉 +50 💰& +1 🧠!")
     else:
         bot.send_message(chat_id, f"Wrong answer 😞. The answer correct is: {correct_answer}")
 
@@ -304,29 +307,43 @@ def back_games1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     games(call.message.chat.id)
 
+@bot.callback_query_handler(func=lambda call: call.data == "trivia_challenge")
+def start_game(call):
+    start_trivia_game(bot, call)
+
+
+@bot.callback_query_handler(func=lambda call: call.data in ["trivia_true", "trivia_false"])
+def process_answer(call):
+    user_answer = "True" if call.data == "trivia_true" else "False"
+    handle_trivia_answer(bot, call, user_answer)
+
 #Random Things Part
 @bot.callback_query_handler(func=lambda call: call.data == 'random_play')
 def random_play1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     random_things(call.message.chat.id)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'random_fact')
 def random_fact1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     fact = get_random_fact()
     bot.send_message(call.message.chat.id, f"🧠 Random Fact: {fact}")
     random_things(call.message.chat.id)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'random_motivation')
 def random_motivation1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     motivation = get_random_motivation()
     bot.send_message(call.message.chat.id, f"💪 Random Motivation: {motivation}")
     random_things(call.message.chat.id)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'random_photo')
 def random_photo1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     photo = get_random_photo()
     bot.send_photo(call.message.chat.id, photo)
     random_things(call.message.chat.id)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'random_joke')
 def random_joke1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
@@ -426,18 +443,7 @@ def handle_callbacks(call):
 
 
 # 1 - GAMES PART FUNCTION
-WORDS = [
-    "ability", "action", "adventure", "age", "air", "animal", "answer", "area", "army", "art",
-    "baby", "back", "ball", "bank", "bed", "bird", "boat", "book", "bottle", "box",
-    "boy", "bridge", "brother", "building", "business", "cake", "camera", "car", "cat", "chance",
-    "change", "child", "city", "class", "climate", "cloud", "club", "coat", "coffee", "college",
-    "color", "company", "computer", "country", "cow", "dance", "day", "deal", "decision", "desk",
-    "development", "door", "dream", "drink", "driver", "earth", "education", "effect", "egg", "end",
-    "energy", "engine", "event", "example", "experience", "eye", "family", "farm", "father", "field",
-    "film", "fire", "fish", "flower", "food", "forest", "friend", "game", "garden", "girl",
-    "glass", "goal", "group", "growth", "guide", "hair", "hand", "hat", "health", "heart",
-    "history", "holiday", "home", "horse", "hospital", "house", "idea", "industry", "information", "island"
-]
+
 user_states = {}
 
 
@@ -450,6 +456,7 @@ user_states = {}
 def start_periodic_sender():
     sender_thread = threading.Thread(target=send_periodic_messages, daemon=True)
     sender_thread.start()
+
 def send_periodic_messages():
     """
     Отправляет уведомление через bot.send_message всем зарегистрированным пользователям.
@@ -490,4 +497,5 @@ def send_periodic_messages():
 
 # Initialize database and start polling
 init_db()
+init_trivia_db()
 bot.polling(non_stop=True)

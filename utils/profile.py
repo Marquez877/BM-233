@@ -67,7 +67,7 @@ def my_profile(chat_id):
 
         caption = f"""
 🖼 **Your name:** {first_name}
-💳 **Your balance:** {user_balance} ₽
+💳 **Your balance:** {user_balance} 💰
 """
 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
