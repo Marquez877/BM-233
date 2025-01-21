@@ -1,6 +1,7 @@
-import random
+
 from telebot import types
 from database_utils import *
+import random
 import time
 from bot_config import bot
 back = '🔙 Back'
@@ -80,7 +81,7 @@ def play_roulette(chat_id, bet_amount, category):
         multiplier = 0
 
         try:
-            with open('media/roulette-game.mp4', 'rb') as gif:
+            with open('../media/roulette-game.mp4', 'rb') as gif:
                 animation_msg = bot.send_animation(
                     chat_id, gif,
                     caption='🎡 *The roulette spins...*\nWill luck be on your side? 🤔🍀',
@@ -178,83 +179,122 @@ def bet_menu(chat_id, category):
     back_button = types.InlineKeyboardButton(back, callback_data='roulette')
     markup.add(back_button)
 
-    with open('media/bet-casino.mp4', 'rb') as gif:
+    with open('../media/bet-casino.mp4', 'rb') as gif:
         bot.send_animation(chat_id, gif, caption=text, reply_markup=markup)
 
-def handle_number_bet(message):
+import threading
+from database_utils import get_balance, update_balance  # Для работы с базой данных
+
+
+# Логика игры: Ставка на число
+def play_roulette_number(chat_id, bet_amount, number, bot):
+    """
+    Основная логика игры рулетки на числа.
+    """
     try:
-        number = int(message.text)
-        if not (0 <= number <= 36):  # Проверяем диапазон 0-36
-            raise ValueError
-        bot.send_message(
-            message.chat.id,
-            f"You selected number {number}. How much money do you want to bet? 💸"
-        )
-        bot.register_next_step_handler(
-            message, lambda bet_message: process_number_bet(message.chat.id, number, bet_message)
-        )
-    except ValueError:
-        bot.send_message(message.chat.id, "❌ Please enter a valid number between 0 and 36.")
-        bot.register_next_step_handler(message, handle_number_bet)
-    except Exception as e:
-        print(f"Error in handle_number_bet: {e}")
-
-
-def process_number_bet(chat_id, number, bet_message):
-    try:
-        bet_amount = int(bet_message.text)
-        current_balance = get_balance(chat_id)
-        if current_balance is None:
-            bot.send_message(chat_id, "❌ Unable to retrieve your balance. Please try again later.")
-            return
-
-        if bet_amount <= 0:
-            bot.send_message(chat_id, "❌ Bet amount must be greater than zero.")
-            bot.register_next_step_handler(bet_message, lambda bm: process_number_bet(chat_id, number, bm))
-            return
-        elif bet_amount > current_balance:
-            bot.send_message(chat_id, "😢 Insufficient balance for this bet.")
-            return
-
-        # Если всё нормально, играем и возвращаем результат
-        result_message, new_balance = play_roulette_number(chat_id, bet_amount, number)
-        bot.send_message(chat_id, result_message)
-    except Exception as e:
-        print(f"Error in process_number_bet: {e}")
-        bot.send_message(chat_id, "❌ An unexpected error occurred. Please try again.")
-
-def play_roulette_number(chat_id, bet_amount, number):
-    try:
-        # Генерация результата для ставки
         roulette_result = random.randint(0, 36)
-        # Получаем текущий баланс и проверяем его
         current_balance = get_balance(chat_id)
 
-        if current_balance is None:
-            return "❌ Error fetching balance. Please try again later.", 0
-        if bet_amount <= 0 or bet_amount > current_balance:
-            return "Invalid bet: your bet exceeds your balance or is not positive.", current_balance
+        if current_balance is None or bet_amount <= 0 or bet_amount > current_balance:
+            return "Invalid bet: make sure your bet is positive and within your balance.", current_balance
 
-        # Уведомление пользователя о результате
-        with open('media/roulette-game.mp4', 'rb') as gif:
+        # Уведомление: вращение рулетки
+        with open('../media/roulette-game.mp4', 'rb') as gif:
             animation_msg = bot.send_animation(chat_id, gif, caption='The ball is spinning...')
         time.sleep(4)
-        bot.delete_message(chat_id, animation_msg.message_id)
+        # Удаляем сообщение с гифкой через небольшой интервал времени
+        threading.Timer(0.1, lambda: bot.delete_message(chat_id, animation_msg.message_id)).start()
 
+        # Проверяем результат
         if roulette_result == number:
             multiplier = 35
             winnings = int(bet_amount * multiplier)
             new_balance = current_balance + winnings
             update_balance(chat_id, new_balance)
-            return f"🎉 You WON! The ball landed on {roulette_result}. Winnings: {winnings}. New balance: {new_balance}.", new_balance
+            return (
+                f"You WON! 🎉 The ball landed on {roulette_result}. Your winnings: {winnings}. New balance: {new_balance}.",
+                new_balance
+            )
         else:
             new_balance = current_balance - bet_amount
             update_balance(chat_id, new_balance)
-            return f"💔 You LOST. The ball landed on {roulette_result}. New balance: {new_balance}.", new_balance
+            return (
+                f"You LOST. 😢 The ball landed on {roulette_result}. Your new balance: {new_balance}.",
+                new_balance
+            )
 
     except Exception as e:
         print(f"Error in play_roulette_number: {e}")
-        return "Internal server error. Please try again later.", None
+        return "Internal error occurred. Please try again later.", None
+
+import telebot
+
+def process_number_bet(chat_id, number, bet_message, bot):
+    """
+    Обработка ставки: проверяет сумму ставки, баланс и вызывает игру.
+    """
+    try:
+        bet_amount = int(bet_message.text)
+        current_balance = get_balance(chat_id)
+
+        if bet_amount <= 0:
+            bot.send_message(chat_id, "❌ Bet amount must be greater than zero.")
+            bot.register_next_step_handler(
+                bet_message,
+                lambda bm: process_number_bet(chat_id, number, bm, bot)
+            )
+            return
+        elif bet_amount > current_balance:
+            bot.send_message(
+                chat_id,
+                "😢 *Your balance is insufficient for this bet.*\n💡 Try a smaller wager or earn more coins!",
+                parse_mode="Markdown"
+            )
+            time.sleep(2)
+            return  # Завершаем обработку
+
+        # Игровая логика
+        result_message, new_balance = play_roulette_number(chat_id, bet_amount, number, bot)
+
+        # Ответ пользователю
+        markup = telebot.types.InlineKeyboardMarkup()  # Исправлено: используем telebot.types
+        markup.add(
+            telebot.types.InlineKeyboardButton('Play Again 🔄', callback_data=f'roulette'),
+            telebot.types.InlineKeyboardButton('Casino Menu 🎰', callback_data='casino'),
+        )
+        bot.send_message(chat_id, result_message, reply_markup=markup)
+
+    except ValueError:
+        bot.send_message(chat_id, "❌ Please enter a valid bet amount.")
+        bot.register_next_step_handler(
+            bet_message,
+            lambda bm: process_number_bet(chat_id, number, bm, bot)
+        )
+
+def handle_number_bet(message, bot):
+    """
+    Обработка ввода числа для ставки.
+    """
+    try:
+        number = int(message.text)  # Пробуем преобразовать ввод в число
+        if not 0 <= number <= 36:  # Проверка диапазона
+            bot.send_message(message.chat.id, "❌ Please enter a valid number between 0 and 36.")
+            bot.register_next_step_handler(message, lambda m: handle_number_bet(m, bot))
+            return
+
+        # Если число валидно, запрашиваем сумму ставки
+        bot.send_message(
+            message.chat.id,
+            f"You selected number {number} ✨. How much money do you want to bet? 💸"
+        )
+        bot.register_next_step_handler(
+            message,
+            lambda bet_message: process_number_bet(message.chat.id, number, bet_message, bot)
+        )
+
+    except ValueError:  # Если пользователь ввел не число
+        bot.send_message(message.chat.id, "❌ Please enter a valid number between 0 and 36.")
+        bot.register_next_step_handler(message, lambda m: handle_number_bet(m, bot))
 
 def show_forbes(chat_id):
     """

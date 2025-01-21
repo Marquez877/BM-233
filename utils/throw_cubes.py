@@ -2,8 +2,8 @@ import random
 from telebot import types
 from database_utils import get_balance, update_balance
 from bot_config import bot
-
-def throw_cubes_game(bot, chat_id, bet_amount):
+import time
+def throw_cubes_game(chat_id, bet_amount):
     """Игра 'Бросок кубиков'"""
     current_balance = get_balance(chat_id)
     if current_balance is None or bet_amount > current_balance:
@@ -22,6 +22,7 @@ def throw_cubes_game(bot, chat_id, bet_amount):
 
     player_roll = random.randint(2, 12)
     bot.send_message(chat_id, f"🎲 You roll the dice... You got *{player_roll}*", parse_mode="Markdown")
+    time.sleep(2)
     bot_roll = random.randint(2, 12)
     bot.send_message(chat_id, f"🤖 Bot rolls the dice... Bot got *{bot_roll}*", parse_mode="Markdown")
 
@@ -38,6 +39,13 @@ def throw_cubes_game(bot, chat_id, bet_amount):
             chat_id,
             f"🎉 *You won!* Your roll: {player_roll}, Bot's roll: {bot_roll}\n"
             f"💰 *Winnings*: {winnings}\n🏆 *New Balance*: {new_balance}",
+            parse_mode="Markdown",
+            reply_markup=markup
+        )
+    elif player_roll == bot_roll:
+        bot.send_message(
+            chat_id,
+            f"You got the *same* numbers, reroll the dice... Bot got *{bot_roll}* and you got *{player_roll}*... ",
             parse_mode="Markdown",
             reply_markup=markup
         )

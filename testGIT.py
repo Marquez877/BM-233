@@ -1,14 +1,12 @@
-import threading
-from menu_handlers import *
-from random_utils import *
-from throw_cubes import *
-from casino_utils import *
-from games_utils import *
-from some_name_for_this_func import *
-
+from utils.random_utils import *
+from utils.throw_cubes import *
+from utils.casino_utils import *
+from utils.games_utils import *
+from utils.some_name_for_this_func import *
+from utils.profile import *
 bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
 db_path = 'casino.db'
-
+user_states = {}
 back = '🔙 Back'
 casino_players = {}
 
@@ -87,9 +85,50 @@ def start(message):
 def gpt1(call):
     bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
     bot.send_message(call.message.chat.id, "You can use this free Telegram-Bot to ask quetions: @Buddy_GPTbot ")
-    send_menu(call.message.chat.id)
+    send_menu(call.message.chat.id,bot)
+@bot.callback_query_handler(func=lambda call: call.data == 'my_profile')
+def profile_callback(call):
+    from utils.profile import my_profile
+    my_profile(call.message.chat.id)
 
 
+# Callback для изменения имени
+@bot.callback_query_handler(func=lambda call: call.data == 'edit_profile_name')
+def edit_profile_name_callback(call):
+    chat_id = call.message.chat.id
+    bot.delete_message(chat_id=chat_id, message_id=call.message.message_id)
+    user_states[chat_id] = 'awaiting_name'  # Устанавливаем состояние "ожидание имени"
+    bot.send_message(chat_id, "Please, enter your new name:")
+
+
+# Обработка ввода нового имени пользователя
+@bot.message_handler(func=lambda message: user_states.get(message.chat.id) == 'awaiting_name')
+def process_new_name(message):
+    chat_id = message.chat.id
+
+    # Проверка текущего состояния пользователя
+    if user_states.get(chat_id) != 'awaiting_name':
+        bot.send_message(chat_id, "⚠️ Wrong state. Please, try again later.")
+        return
+
+    new_name = message.text.strip()  # Удаляем пробелы
+
+    # Проверяем, доступно ли имя
+    from utils.profile import name_exists, update_first_name, my_profile
+    if name_exists(new_name):
+        bot.send_message(chat_id, f" This name *{new_name}* is already taken. Please, choose another one.",
+                         parse_mode="Markdown")
+        return  # Не очищаем состояние, чтобы пользователь мог попробовать другой вариант
+
+    # Обновляем имя в базе данных
+    update_first_name(chat_id, new_name)
+    bot.send_message(chat_id, f"*Your name has been successfully updated to* *{new_name}*!", parse_mode="Markdown")
+
+    # Сбрасываем состояние пользователя
+    user_states.pop(chat_id, None)
+
+    # Показываем обновленный профиль
+    my_profile(chat_id)
 # Information Part
 @bot.callback_query_handler(func=lambda call: call.data == 'info')
 def info1(call):
@@ -312,7 +351,7 @@ def handle_callbacks(call):
     elif call.data == 'category_number':  # Ставка на число
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         bot.send_message(call.message.chat.id, "🎯 Enter the number you want to bet on (0-36):")
-        bot.register_next_step_handler_by_chat_id(call.message.chat.id, handle_number_bet)  # bot не нужен
+        bot.register_next_step_handler_by_chat_id(call.message.chat.id, lambda m: handle_number_bet(m, bot))  # bot не нужен
     elif call.data == 'throw_cubes':  # Throw Cubes game
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         bot.send_message(call.message.chat.id, "💰 Enter your bet amount:")
@@ -321,7 +360,7 @@ def handle_callbacks(call):
     elif call.data.startswith('category_'):
         category = call.data.split('_')[1]
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        bet_menu(call.message.chat.id, category)  # Добавляем bot
+        bet_menu(call.message.chat.id, category)
 
     elif call.data.startswith('bet_'):
         try:
@@ -371,13 +410,13 @@ def handle_callbacks(call):
         bot.send_message(call.message.chat.id, result_message, reply_markup=markup, parse_mode="Markdown")
     elif call.data == 'back':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        send_menu(bot, call.message.chat.id)  # Добавляем bot
+        send_menu(call.message.chat.id,bot)
     elif call.data == 'back_games':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        games(bot, call.message.chat.id)  # Добавляем bot
+        games(bot, call.message.chat.id)
     elif call.data == 'forbes':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        show_forbes(bot, call.message.chat.id)  # Добавляем bot
+        show_forbes(call.message.chat.id)
 
 
 

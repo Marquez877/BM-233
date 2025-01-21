@@ -11,7 +11,7 @@ def send_menu(chat_id, bot):
     casino_players[chat_id] = chat_id
 
     markup = types.InlineKeyboardMarkup()
-    my_profile = types.InlineKeyboardButton('MY PROFILE', callback_data='my_profile')
+    my_profile = types.InlineKeyboardButton('MY PROFILE ℹ️', callback_data='my_profile')
     info = types.InlineKeyboardButton('INFO 📋', callback_data='info')
     manas = types.InlineKeyboardButton('MANAS 🎓', callback_data='manas')
     games = types.InlineKeyboardButton('GAMES 👾', callback_data='games')
@@ -22,10 +22,9 @@ def send_menu(chat_id, bot):
     markup.row(my_profile)
     markup.row(info, manas)
     markup.row(games, random_things)
-    markup.row(gtp_button)
     casino = types.InlineKeyboardButton('CASINO 🎰', callback_data='casino')
-    markup.row(casino)
-    markup.row(forbes)
+    markup.row(casino,forbes)
+    markup.row(gtp_button)
     bot.send_message(chat_id, text, reply_markup=markup)
 
 
