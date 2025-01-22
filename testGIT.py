@@ -4,6 +4,7 @@ from utils.casino_utils import *
 from utils.games_utils import *
 from utils.some_name_for_this_func import *
 from utils.profile import *
+from utils.jobs_utils import *
 bot = telebot.TeleBot('7244608311:AAHrlYJnzHwBpTTZ1Js7QG6gBTwDxtmx3Yw')
 db_path = 'casino.db'
 user_states = {}
@@ -430,7 +431,60 @@ def handle_callbacks(call):
     elif call.data == 'forbes':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         show_forbes(call.message.chat.id)
+    elif call.data == 'jobs':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        chat_id = call.message.chat.id
+        first_name = call.message.chat.first_name
 
+        # Подключаемся к базе данных intellect.db
+        connection = sqlite3.connect("intellect.db")
+        cursor = connection.cursor()
+
+        # Убедимся, что таблица job_users существует
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS job_users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    chat_id INTEGER UNIQUE NOT NULL,
+                    first_name TEXT
+                )
+            """)
+
+        # Проверяем, есть ли пользователь в базе
+        cursor.execute("SELECT chat_id FROM job_users WHERE chat_id = ?", (chat_id,))
+        user_exists = cursor.fetchone()
+
+        if user_exists is None:
+            # Если пользователя нет, добавляем
+            cursor.execute(
+                "INSERT INTO job_users (chat_id, first_name) VALUES (?, ?)",
+                (chat_id, first_name)
+            )
+            connection.commit()
+            bot.send_message(chat_id, "✅ You have been successfully added to the Jobs database!")
+        else:
+            # Если пользователь уже добавлен
+            bot.send_message(chat_id, "ℹ️ You are already in the Jobs database!")
+
+        cursor.close()
+        connection.close()
+
+        # Показать меню работы
+        jobs_menu(chat_id, bot)
+    elif call.data == 'loader':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        loader_job(call.message.chat.id, bot)  # Передаем `bot` как аргумент
+    elif call.data == 'deliver':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        courier_job(call.message.chat.id, bot)  # Передаем `bot` как аргумент
+    elif call.data == 'baker':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        baker_job(call.message.chat.id, bot)  # Передаем `bot` как аргумент
+    elif call.data == 'programmer':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        programmer_job_jun(call.message.chat.id, bot)  # Передаем `bot` как аргумент
+    elif call.data == 'about_jobs':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        about_jobs(call.message.chat.id,bot)
 
 
 

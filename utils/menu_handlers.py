@@ -16,10 +16,12 @@ def send_menu(chat_id, bot):
     manas = types.InlineKeyboardButton('MANAS 🎓', callback_data='manas')
     games = types.InlineKeyboardButton('GAMES 👾', callback_data='games')
     random_things = types.InlineKeyboardButton('RANDOM THINGS 🎲', callback_data='random_play')
+    jobs = types.InlineKeyboardButton('JOBS 📊',callback_data='jobs')
     gtp_button = types.InlineKeyboardButton('Free Chat GPT ⚪', callback_data='gpt')
     forbes = types.InlineKeyboardButton('FORBES 💸', callback_data='forbes')
 
     markup.row(my_profile)
+    markup.row(jobs)
     markup.row(info, manas)
     markup.row(games, random_things)
     casino = types.InlineKeyboardButton('CASINO 🎰', callback_data='casino')

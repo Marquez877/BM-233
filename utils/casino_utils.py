@@ -51,9 +51,18 @@ def roulette_menu(bot, chat_id):
         types.InlineKeyboardButton('19 to 36', callback_data='category_19-36')
     )
     markup.row(types.InlineKeyboardButton('Bet on Number 🎯', callback_data='category_number'))
-    back_button = types.InlineKeyboardButton(back, callback_data='casino')
+    back_button = types.InlineKeyboardButton('🔙 Back', callback_data='casino')
     markup.row(back_button)
-    bot.send_message(chat_id, text, reply_markup=markup)
+
+    # Определяем путь к изображению
+    photo_path = os.path.join(os.path.dirname(__file__), '../media/casinoPHOTO.jpg')
+
+    # Проверка существования изображения
+    if os.path.exists(photo_path):
+        with open(photo_path, 'rb') as photo:
+            bot.send_photo(chat_id, photo, caption=text, reply_markup=markup)
+    else:
+        bot.send_message(chat_id, "⚠️ Casino photo not found.", reply_markup=markup)
 
 
 def play_roulette(chat_id, bet_amount, category):
@@ -61,7 +70,6 @@ def play_roulette(chat_id, bet_amount, category):
     Implements the main roulette game logic.
     """
     import random
-    import time
 
     try:
         valid_categories = {'1st', '2nd', '3rd', '1-18', '19-36', 'even', 'odd', 'red', 'black'}
@@ -77,11 +85,10 @@ def play_roulette(chat_id, bet_amount, category):
         RED_NUMBERS = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}
         BLACK_NUMBERS = {2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35}
 
-        won = False
-        multiplier = 0
-
-        try:
-            with open('../media/roulette-game.mp4', 'rb') as gif:
+        # Попробуем загрузить анимацию
+        file_path = os.path.join(os.path.dirname(__file__), '../media/roulette-game.mp4')
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as gif:
                 animation_msg = bot.send_animation(
                     chat_id, gif,
                     caption='🎡 *The roulette spins...*\nWill luck be on your side? 🤔🍀',
@@ -89,10 +96,11 @@ def play_roulette(chat_id, bet_amount, category):
                 )
             time.sleep(3)
             bot.delete_message(chat_id, animation_msg.message_id)
-        except FileNotFoundError:
+        else:
             bot.send_message(chat_id, "⚠️ Animation file not found. Spinning without animation.")
 
-        # Проверка выигрыша
+        # Проверка выигрыша будет здесь
+        won, multiplier = False, 0
         if category == '1st' and 1 <= roulette_result <= 12:
             won, multiplier = True, 1.89
         elif category == '2nd' and 13 <= roulette_result <= 24:
@@ -157,6 +165,9 @@ def rules_menu(chat_id):
     back_button = types.InlineKeyboardButton("🔙 Back to Casino Menu", callback_data='casino')
     markup.row(back_button)
     bot.send_message(chat_id, text, reply_markup=markup)
+import os  # Импортируем os для работы с путями
+
+
 def bet_menu(chat_id, category):
     text = 'How much money 💰do you want to bet?'
     markup = types.InlineKeyboardMarkup()
@@ -176,11 +187,21 @@ def bet_menu(chat_id, category):
     )
 
     # Кнопка "Back"
-    back_button = types.InlineKeyboardButton(back, callback_data='roulette')
+    back_button = types.InlineKeyboardButton('Back', callback_data='roulette')
     markup.add(back_button)
 
-    with open('../media/bet-casino.mp4', 'rb') as gif:
+    # Определяем путь к файлу
+    file_path = os.path.join(os.path.dirname(__file__), '../media/bet-casino.mp4')
+
+    # Проверяем существование файла
+    if not os.path.exists(file_path):
+        bot.send_message(chat_id, "❌ Animation file not found. Please contact the administrator.")
+        return
+
+    # Открываем файл только если он существует
+    with open(file_path, 'rb') as gif:
         bot.send_animation(chat_id, gif, caption=text, reply_markup=markup)
+
 
 import threading
 from database_utils import get_balance, update_balance  # Для работы с базой данных
@@ -188,6 +209,52 @@ from database_utils import get_balance, update_balance  # Для работы с
 
 # Логика игры: Ставка на число
 def play_roulette_number(chat_id, bet_amount, number, bot):
+    """
+    Основная логика игры рулетки на числа.
+    """
+    try:
+        # Случайный результат рулетки
+        roulette_result = random.randint(0, 36)
+        current_balance = get_balance(chat_id)
+
+        if current_balance is None or bet_amount <= 0 or bet_amount > current_balance:
+            return "Invalid bet: make sure your bet is positive and within your balance.", current_balance
+
+        # Определяем файл анимации
+        file_path = os.path.join(os.path.dirname(__file__), '../media/roulette-game.mp4')
+
+        # Проверка существования файла
+        if os.path.exists(file_path):
+            with open(file_path, 'rb') as gif:
+                animation_msg = bot.send_animation(chat_id, gif, caption='🎰 The ball is spinning...')
+            time.sleep(4)
+            # Удаляем сообщение с анимацией
+            threading.Timer(0.1, lambda: bot.delete_message(chat_id, animation_msg.message_id)).start()
+        else:
+            bot.send_message(chat_id, "⚠️ Animation file not found. The ball is spinning without animation.")
+            time.sleep(4)  # Задержка для имитации "вращения" без анимации
+
+        # Проверяем результат
+        if roulette_result == number:
+            multiplier = 35  # Награда за точное попадание
+            winnings = int(bet_amount * multiplier)
+            new_balance = current_balance + winnings
+            update_balance(chat_id, new_balance)
+            return (
+                f"🎉 You WON! The ball landed on {roulette_result}. Your winnings: {winnings} coins! New balance: {new_balance}.",
+                new_balance
+            )
+        else:
+            new_balance = current_balance - bet_amount
+            update_balance(chat_id, new_balance)
+            return (
+                f"😢 You LOST. The ball landed on {roulette_result}. Your new balance: {new_balance}.",
+                new_balance
+            )
+
+    except Exception as e:
+        print(f"Error in play_roulette_number: {e}")
+        return "⚠️ Internal error occurred. Please try again later.", None
     """
     Основная логика игры рулетки на числа.
     """

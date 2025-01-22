@@ -64,10 +64,11 @@ def my_profile(chat_id):
     try:
         first_name = escape_markdown(get_first_name(chat_id))
         user_balance = escape_markdown(str(get_balance(chat_id)))
-
+        intellect = get_intelligence_points_by_chat_id(chat_id)
         caption = f"""
 🖼 **Your name:** {first_name}
 💳 **Your balance:** {user_balance} 💰
+🧠 **Your Intellect:** {intellect} points
 """
 
         keyboard = types.InlineKeyboardMarkup(row_width=1)
