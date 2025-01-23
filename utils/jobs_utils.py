@@ -26,12 +26,15 @@ def jobs_menu(chat_id, bot):
     loader = types.InlineKeyboardButton("🔧 Loader", callback_data="loader")
     deliver = types.InlineKeyboardButton("🚴 Courier", callback_data="deliver")
     baker = types.InlineKeyboardButton("🍞 Baker", callback_data="baker")
+    teacher_job = types.InlineKeyboardButton('👨‍🏫 Teacher', callback_data='teacher_job')
+    lawyer_job = types.InlineKeyboardButton('👨‍💼 Lawyer',callback_data='lawyer_job')
     programmer_jun = types.InlineKeyboardButton("💻 Programmer", callback_data="programmer")
     about_jobs = types.InlineKeyboardButton("ℹ️ About Jobs", callback_data="about_jobs")
     back = types.InlineKeyboardButton("🔙 Back", callback_data="back")
 
     markup.row(loader,deliver)
-    markup.row(baker,programmer_jun)
+    markup.row(baker,teacher_job)
+    markup.row(lawyer_job,programmer_jun)
     markup.row(about_jobs)
     markup.row(back)
 
@@ -203,3 +206,84 @@ def programmer_job_jun(chat_id, bot):
         ), parse_mode="Markdown")
 
     jobs_menu(chat_id, bot)
+
+def lawyer_job(chat_id, bot):
+    user_intelligence = get_intelligence_points_by_chat_id(chat_id)
+
+    # Проверяем уровень интеллекта
+    if user_intelligence is None:
+        user_intelligence = 1  # Устанавливаем значение по умолчанию
+
+    if user_intelligence >= 35:
+        message = bot.send_message(chat_id, "⚖️ **You started working as a lawyer...**")
+        time.sleep(1)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="📚 Reviewing case files...")
+        time.sleep(1)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="✍️ Drafting legal documents...")
+        time.sleep(1)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="🔎 Researching legal precedents...")
+        time.sleep(1)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="📢 Presenting arguments in court...")
+        time.sleep(1)
+
+        earnings = random.randint(800, 1500)
+        current_balance = get_balance(chat_id)
+        new_balance = current_balance + earnings
+        update_balance(chat_id, new_balance)
+
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=(
+            f"🎉 **Job completed!**\n\n"
+            f"You earned: **+{earnings}** 💰\n\n"
+            f"📊 **Your new balance:** **{new_balance}** 💼"
+        ), parse_mode="Markdown")
+    else:
+        bot.send_message(chat_id, (
+            f"⛔ **Unfortunately, you cannot work as a lawyer.**\n\n"
+            f"Your intelligence level: **{user_intelligence}** 🧠\n"
+            f"💡 Required: **35** 🧠.\n\n"
+            f"Increase your intelligence and try again!"
+        ), parse_mode="Markdown")
+
+    jobs_menu(chat_id, bot)
+
+
+def teacher_job(chat_id, bot):
+    user_intelligence = get_intelligence_points_by_chat_id(chat_id)
+
+    # Проверяем уровень интеллекта
+    if user_intelligence is None:
+        user_intelligence = 1  # Устанавливаем значение по умолчанию
+
+    if user_intelligence >= 25:
+        message = bot.send_message(chat_id, "📚 **You started working as a teacher...**")
+        time.sleep(0.8)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="📓 Preparing lesson plans...")
+        time.sleep(0.8)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="👩‍🏫 Teaching the class...")
+        time.sleep(0.8)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="📝 Grading assignments...")
+        time.sleep(0.8)
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text="🎓 Conducting final reviews...")
+        time.sleep(0.8)
+
+        earnings = random.randint(800, 1200)
+        current_balance = get_balance(chat_id)
+        new_balance = current_balance + earnings
+        update_balance(chat_id, new_balance)
+
+        bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=(
+            f"🎉 **Job completed!**\n\n"
+            f"You earned: **+{earnings}** 💰\n\n"
+            f"📊 **Your new balance:** **{new_balance}** 💼"
+        ), parse_mode="Markdown")
+    else:
+        bot.send_message(chat_id, (
+            f"⛔ **Unfortunately, you cannot work as a teacher.**\n\n"
+            f"Your intelligence level: **{user_intelligence}** 🧠\n"
+            f"💡 Required: **25** 🧠.\n\n"
+            f"Increase your intelligence and try again!"
+        ), parse_mode="Markdown")
+
+    jobs_menu(chat_id, bot)
+
+

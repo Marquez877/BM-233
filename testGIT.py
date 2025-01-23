@@ -481,7 +481,13 @@ def handle_callbacks(call):
         baker_job(call.message.chat.id, bot)  # Передаем `bot` как аргумент
     elif call.data == 'programmer':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-        programmer_job_jun(call.message.chat.id, bot)  # Передаем `bot` как аргумент
+        programmer_job_jun(call.message.chat.id, bot)
+    elif call.data == 'lawyer_job':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        lawyer_job(call.message.chat.id, bot)
+    elif call.data == 'teacher_job':
+        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        teacher_job(call.message.chat.id, bot)
     elif call.data == 'about_jobs':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
         about_jobs(call.message.chat.id,bot)
